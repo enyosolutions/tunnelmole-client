@@ -3,12 +3,12 @@ import deepmerge from 'deepmerge';
 
 const baseConfig = {
     hostip: {
-        endpoint: "service.tunnelmole.com",
-        port: "80"
+        endpoint: "all.tunnel.enyo.cc",
+        port: "443"
     },
     runtime: {
         enableLogging: true
-    }    
+    }
 }
 
 

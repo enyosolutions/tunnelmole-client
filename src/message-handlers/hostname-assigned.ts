@@ -11,11 +11,11 @@ export default async function hostnameAssigned(message: HostnameAssignedMessage,
         console.error('Please specify a port e.g. run "tmole 80"');
         process.exit(1);
     }
-
     const httpsUrl = `https://${message.hostname}`;
     const httpUrl = `http://${message.hostname}`;
     const destinationUrl = `http://localhost:${port}`;
     const encodedHttpsUrl = Buffer.from(httpsUrl).toString('base64');
+
 
 
     if (process.env.TUNNELMOLE_QUIET_MODE !== '1') {
@@ -25,12 +25,14 @@ export default async function hostnameAssigned(message: HostnameAssignedMessage,
         console.info(`${chalk.greenBright.bold(httpsUrl)} ⟶   ${chalk.bold(destinationUrl)}`);
         console.info(`${chalk.greenBright.bold(httpUrl)} ⟶   ${chalk.bold(destinationUrl)}`);
         console.info('');
+      if (message.logsPassword) {
+        console.info('Dashboard: \n' + chalk.greenBright.bold(httpsUrl + '/__logs?token=' + message.logsPassword), '\n');
+        console.info('Password for dashboard: ' + chalk.greenBright.bold(message.logsPassword));
+      }
+      console.info('');
         console.info('='.repeat(process.stdout.columns));
     }
 
-    printSharingNetwork(chalk.bold("Share to Reddit"), 'reddit', encodedHttpsUrl);
-    printSharingNetwork(chalk.bold("Share to X/Twitter"), 'twitter', encodedHttpsUrl);
-    printSharingNetwork(chalk.bold("Share to Hacker News"), 'hackernews', encodedHttpsUrl);
     console.info("\n\n");
 
     eventHandler.emit(URL_ASSIGNED, httpsUrl);
