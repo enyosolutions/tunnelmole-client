@@ -46,17 +46,21 @@ const setUpAutoReconnect = async(
     options: Options,
     websocket: HostipWebSocket
 ) => {
-    // We can only reliably reconnect custom subdomains. Otherwise you'd get another random subdomain on reconnection
-    if (typeof options.domain !== 'string') {
-        return;
-    }
-
-    // Set up the websocket connection to auto reconnect
+    // Always listen for disconnects so the CLI (and API consumers) are aware their tunnel has died.
     websocket.on('close', () => {
-        attemptReconnection(options);
+        if (typeof options.domain === 'string') {
+            attemptReconnection(options);
+            return;
+        }
+
+        log('Tunnel disconnected. Please restart Tunnelmole to get a new public URL.', 'error');
+        process.exit(1);
     });
 
-    resetTheConnectionAttemptsInterval();
+    // We can only reliably reconnect custom subdomains. Otherwise we'd hand out a brand new random subdomain.
+    if (typeof options.domain === 'string') {
+        resetTheConnectionAttemptsInterval();
+    }
 }
 
 export { setUpAutoReconnect }

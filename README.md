@@ -134,6 +134,17 @@ Again if you are using the hosted service (which is the default) and you want to
 
 Otherwise, you can self host. To learn more about this option go to the [Tunnelmole Service](https://github.com/robbie-cahill/tunnelmole-service/) GitHub repo.
 
+#### Pointing the CLI at a custom service
+When running against your own backend, you no longer need to edit the source to change the service URLs. Use the following commands to persist overrides (values are saved to `~/.tmole.sh/client-config.json`):
+
+```
+tmole --set-host-endpoint wss://my-service.example.com:443
+tmole --set-host-http-endpoint https://my-service.example.com
+tmole --set-domain-suffix tunnel.example.com
+```
+
+After setting these options once, subsequent `tmole` commands will reuse them.
+
 #### Suppress output/logs
 To suppress the initial output with the URLs, set the environment variable `TUNNELMOLE_QUIET_MODE=1` somewhere in your environment. This might be useful in a CI/CD environment or in other scripts.
 
@@ -191,6 +202,5 @@ This package is for the Tunnelmole client. The service is also open source and i
 
 
 If you found this useful, dont forget to **Star On GitHub** [![stars - tunnelmole-client](https://img.shields.io/github/stars/robbie-cahill/tunnelmole-client?style=social)](https://github.com/robbie-cahill/tunnelmole-client)
-
 
 

@@ -3,6 +3,7 @@ import HostipWebSocket from '../websocket/host-ip-websocket.js';
 import { Options } from '../options.js';
 import { eventHandler, URL_ASSIGNED } from '../events/event-handler.js';
 import chalk from 'chalk';
+import qrcode from 'qrcode-terminal';
 
 export default async function hostnameAssigned(message: HostnameAssignedMessage, websocket: HostipWebSocket, options: Options) {
     const port = options.port;
@@ -24,6 +25,9 @@ export default async function hostnameAssigned(message: HostnameAssignedMessage,
         console.info('');
         console.info(`${chalk.greenBright.bold(httpsUrl)} ⟶   ${chalk.bold(destinationUrl)}`);
         console.info(`${chalk.greenBright.bold(httpUrl)} ⟶   ${chalk.bold(destinationUrl)}`);
+        console.info('');
+        console.info('Scan to open the HTTPS URL from your phone:');
+        qrcode.generate(httpsUrl, { small: true });
         console.info('');
       if (message.logsPassword) {
         console.info('Dashboard: \n' + chalk.greenBright.bold(httpsUrl + '/__logs?token=' + message.logsPassword), '\n');

@@ -50,6 +50,9 @@ More detailed instructions, cookbooks and more are available at https://tunnelmo
         .arguments('[arg0]')
         .option('--set-api-key <apiKey>', 'Set your API key. After purchasing a subscription you can copy and paste the command shown on the page')
         .option('--unreserve-subdomain <subdomain>', 'Unreserve a subdomain, for example if the number of subdomains you have reserved exceeds your limit')
+        .option('--set-host-endpoint <endpoint>', 'Override the websocket endpoint used to establish tunnels (e.g. wss://example.com:443)')
+        .option('--set-host-http-endpoint <endpoint>', 'Override the HTTP endpoint used for REST calls (e.g. https://example.com)')
+        .option('--set-domain-suffix <suffix>', 'Override the domain suffix appended to custom subdomains (e.g. tunnel.example.com)')
         .description('tmole - Share your local server with a Public URL')
         .action(dispatchCommand);
 

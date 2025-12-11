@@ -11,9 +11,15 @@
         "outDir": "dist",
         "declaration": true
     },
+    "include": [
+        "*.ts",
+        "src/**/*.ts",
+        "bin/**/*.ts"
+    ],
     "exclude": [
         "cjs",
         "node_modules",
-        "dist"
+        "dist",
+        "test"
     ]
 }

@@ -4,6 +4,7 @@ import { Options } from "../options.js";
 import isNumber from 'is-number';
 import { setApiKey } from "../identity/api-key-service.js";
 import { unreserveDomain } from "../domains/unreseve-domain.js";
+import { setHostEndpoint, setHostHttpEndpoint, setHostDomainSuffix } from "../config/runtime-config-service.js";
 
 /**
  * Build Options from the command line input, then pass them off to tunnelmole()
@@ -54,5 +55,8 @@ const resolveRoute = (command: Command): string|undefined => {
 
 const routes = {
     "setApiKey": setApiKey,
-    "unreserveSubdomain": unreserveDomain
+    "unreserveSubdomain": unreserveDomain,
+    "setHostEndpoint": setHostEndpoint,
+    "setHostHttpEndpoint": setHostHttpEndpoint,
+    "setDomainSuffix": setHostDomainSuffix
 }

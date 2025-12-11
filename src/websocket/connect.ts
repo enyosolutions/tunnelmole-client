@@ -39,11 +39,12 @@ const connect = (options: Options): HostipWebSocket => {
             domain = domain.replace('http://', '');
             domain = domain.replace('https://', '');
 
-          if (!domain.includes('.')) {
-            domain = domain + '.tunnel.enyo.cc'
-          }
+            const configuredDomainSuffix = (config?.hostip?.domainSuffix ?? 'tunnel.enyo.cc').replace(/^\.+/, '');
+            if (!domain.includes('.')) {
+                domain = `${domain}.${configuredDomainSuffix}`
+            }
             if (!validator.isURL(domain)) {
-                console.info("Invalid domain name passed, please use the format mydomain.tunnelmole.net");
+                console.info(`Invalid domain name passed, please use the format mydomain.${configuredDomainSuffix}`);
                 return Promise.resolve();
             }
 
