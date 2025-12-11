@@ -79,6 +79,9 @@ https://cqcu2t-ip-49-185-26-79.tunnelmole.net ⟶ http://localhost:8080
 http://cqcu2t-ip-49-185-26-79.tunnelmole.net ⟶ http://localhost:8080
 ```
 
+### Server-Sent Events
+Need real-time updates without WebSockets? The latest client streams HTTP responses whenever the service flags a request as `text/event-stream`. Headers are forwarded immediately and the body is relayed chunk-by-chunk, so SSE dashboards, hot reloading UIs, and any other long-lived streams behave the same way they do on localhost. Pair this client with the updated service release to take advantage of streaming.
+
 Now, just go to either one of the URLs shown with your web browser.
 The URLs are public - this means you can also share them with collaborators and others over the internet.
 
@@ -202,5 +205,4 @@ This package is for the Tunnelmole client. The service is also open source and i
 
 
 If you found this useful, dont forget to **Star On GitHub** [![stars - tunnelmole-client](https://img.shields.io/github/stars/robbie-cahill/tunnelmole-client?style=social)](https://github.com/robbie-cahill/tunnelmole-client)
-
 

@@ -8,4 +8,5 @@ export default interface ForwardedRequestMessage
     method: string,
     headers: Headers,
     body: string,
+    responseMode?: 'buffer' | 'stream'
 }

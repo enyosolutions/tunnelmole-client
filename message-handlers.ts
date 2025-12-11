@@ -7,6 +7,7 @@ import domainReservationError from "./src/message-handlers/domain-reservation-er
 import tooManyDomains from "./src/message-handlers/too-many-domains.js";
 import clientMessage from "./src/message-handlers/client-message.js";
 import clientDisconnect from "./src/message-handlers/client-disconnect.js";
+import cancelForwardedRequest from "./src/message-handlers/cancel-forwarded-request.js";
 
 /**
  * Websocket message handlers for different message types
@@ -21,7 +22,8 @@ const messageHandlers = {
     domainReservationError,
     tooManyDomains,
     clientMessage,
-    clientDisconnect
+    clientDisconnect,
+    cancelForwardedRequest
 }
 
 export { messageHandlers };

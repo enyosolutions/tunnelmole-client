@@ -1,19 +1,22 @@
-import HostipWebSocket from "../websocket/host-ip-websocket.js"
-import ForwardedRequestMessage from "../messages/forwarded-request-message.js"
+import HostipWebSocket from "../websocket/host-ip-websocket.js";
+import ForwardedRequestMessage from "../messages/forwarded-request-message.js";
 import http from 'http';
-import ForwardedResponseMessage from "../messages/forwarded-response-message.js"
-import { forwardedResponse } from "../messages/types.js"
-import log from "../logging/log.js"
+import ForwardedResponseMessage from "../messages/forwarded-response-message.js";
+import ForwardedResponseStreamStartMessage from "../messages/forwarded-response-stream-start-message.js";
+import ForwardedResponseStreamChunkMessage from "../messages/forwarded-response-stream-chunk-message.js";
+import { forwardedResponse, forwardedResponseStreamStart, forwardedResponseStreamChunk } from "../messages/types.js";
+import log from "../logging/log.js";
 import { Options } from "../options.js";
 import chalk from 'chalk';
 import { HTTP_STATUS_MESSAGES } from "../http/constants.js";
+import { registerPendingRequest, completePendingRequest } from "../http/pending-requests.js";
 
 export default async function forwardedRequest(forwardedRequestMessage: ForwardedRequestMessage, websocket: HostipWebSocket, options : Options) {
     const port = options.port;
-    const { requestId, url, headers, method } = forwardedRequestMessage;
+    const { requestId, url, headers, method, responseMode } = forwardedRequestMessage;
     const userAgentString = headers['User-Agent'] || "";
+    const shouldStreamResponse = responseMode === 'stream';
 
-    // @todo: Once GET is working, add support for all HTTP methods
     const requestOptions : http.RequestOptions = {
         hostname: 'localhost',
         method,
@@ -23,6 +26,61 @@ export default async function forwardedRequest(forwardedRequestMessage: Forwarde
     };
 
     const request = http.request(requestOptions, (response : http.IncomingMessage) => {
+        const statusCode = response.statusCode || 200;
+
+        if (shouldStreamResponse) {
+            const startMessage: ForwardedResponseStreamStartMessage = {
+                type: forwardedResponseStreamStart,
+                requestId,
+                statusCode,
+                url,
+                headers: response.headers
+            };
+
+            websocket.sendMessage(startMessage);
+            console.info(`${getStatusString(statusCode)} ${chalk.bold.white(`${method} ${url}`)} ${userAgentString}`);
+
+            let streamClosed = false;
+            const sendChunk = (chunk: Buffer, isFinal = false) => {
+                const chunkMessage: ForwardedResponseStreamChunkMessage = {
+                    type: forwardedResponseStreamChunk,
+                    requestId,
+                    url,
+                    body: chunk.length > 0 ? chunk.toString('base64') : ''
+                };
+
+                if (isFinal) {
+                    chunkMessage.isFinal = true;
+                }
+
+                websocket.sendMessage(chunkMessage);
+            };
+
+            response.on('data', (chunk: Buffer) => {
+                if (!streamClosed && chunk.length > 0) {
+                    sendChunk(chunk);
+                }
+            });
+
+            const finalizeStream = () => {
+                if (streamClosed) {
+                    return;
+                }
+                streamClosed = true;
+                sendChunk(Buffer.alloc(0), true);
+                completePendingRequest(requestId);
+            };
+
+            response.on('end', finalizeStream);
+            response.on('close', finalizeStream);
+            response.on('error', (error: any) => {
+                log(error);
+                finalizeStream();
+            });
+
+            return;
+        }
+
         let responseBody : Buffer;
         response.on('data', (chunk: Buffer) => {
             if (typeof responseBody === 'undefined') {
@@ -32,10 +90,6 @@ export default async function forwardedRequest(forwardedRequestMessage: Forwarde
             }
         });
 
-        /**
-         * If you see this callback being called more than once, this is probably normal especially if a browser initiated the request
-         * Most browsers will make more than one request, for example an extra one for favicon.ico
-         */
         response.on('end', () => {
             const forwardedResponseMessage : ForwardedResponseMessage = {
                 type: forwardedResponse,
@@ -50,13 +104,19 @@ export default async function forwardedRequest(forwardedRequestMessage: Forwarde
                 forwardedResponseMessage.body = responseBody.toString('base64');
             }
 
-
-            console.info(`${getStatusString(response.statusCode)} ${chalk.bold.white(`${method} ${url}`)} ${userAgentString}`)
+            console.info(`${getStatusString(response.statusCode)} ${chalk.bold.white(`${method} ${url}`)} ${userAgentString}`);
             websocket.sendMessage(forwardedResponseMessage);
-        })
+            completePendingRequest(requestId);
+        });
+
+        response.on('error', (error: any) => {
+            log(error);
+            completePendingRequest(requestId);
+        });
     });
 
-    // Send the request body if its not empty
+    registerPendingRequest(requestId, request);
+
     if (forwardedRequestMessage.body !== '') {
         const requestBody : Buffer = Buffer.from(forwardedRequestMessage.body, 'base64');
         request.write(requestBody);
@@ -64,6 +124,7 @@ export default async function forwardedRequest(forwardedRequestMessage: Forwarde
 
     request.on('error', (error : any) => {
         log(error);
+        completePendingRequest(requestId);
     });
 
     request.end();
